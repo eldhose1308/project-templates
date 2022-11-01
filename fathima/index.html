@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepFake Detetion | ResNet</title>
+</head>
+
+<style>
+    /* ===================== FILE INPUT ===================== */
+    .file-area {
+        width: 100%;
+        position: relative;
+    }
+
+    .file-area input[type=file] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .file-area .file-dummy {
+        width: 100%;
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px dashed rgba(255, 255, 255, 0.2);
+        text-align: center;
+        transition: background 0.3s ease-in-out;
+    }
+
+    .file-area .file-dummy .success {
+        display: none;
+    }
+
+
+    .file-area:hover .file-dummy {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .file-area input[type=file]:focus+.file-dummy {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline: -webkit-focus-ring-color auto 5px;
+    }
+
+    /* 
+    .file-area input[type=file]:valid+.file-dummy {
+        border-color: rgba(0, 255, 0, 0.4);
+        background-color: rgba(0, 255, 0, 0.3);
+    }
+
+    .file-area input[type=file]:valid+.file-dummy .success {
+        display: inline-block;
+    }
+
+    .file-area input[type=file]:valid+.file-dummy .default {
+        display: none;
+    } */
+
+    /* ===================== BASIC STYLING ===================== */
+    * {
+        box-sizing: border-box;
+        font-family: 'Lato', sans-serif;
+    }
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        font-weight: 300;
+        height: 100%;
+        background: #053777;
+        color: #fff;
+        font-size: 16px;
+        overflow: hidden;
+        background: -moz-linear-gradient(top, #053777 0%, #00659b 100%);
+        /* FF3.6+ */
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #053777), color-stop(100%, #00659b));
+        /* Chrome,Safari4+ */
+        background: -webkit-linear-gradient(top, #053777 0%, #00659b 100%);
+        /* Chrome10+,Safari5.1+ */
+        background: -o-linear-gradient(top, #053777 0%, #00659b 100%);
+        /* Opera 11.10+ */
+        background: -ms-linear-gradient(top, #053777 0%, #00659b 100%);
+        /* IE10+ */
+        background: linear-gradient(to bottom, #053777 0%, #00659b 100%);
+        /* W3C */
+    }
+
+    h1 {
+        text-align: center;
+        margin: 50px auto;
+        font-weight: 100;
+    }
+
+    label {
+        font-weight: 500;
+        display: block;
+        margin: 4px 0;
+        text-transform: uppercase;
+        font-size: 13px;
+        overflow: hidden;
+    }
+
+    label span {
+        float: right;
+        text-transform: none;
+        font-weight: 200;
+        line-height: 1em;
+        font-style: italic;
+        opacity: 0.8;
+    }
+
+    .form-controll {
+        display: block;
+        padding: 8px 16px;
+        width: 100%;
+        font-size: 16px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #fff;
+        font-weight: 200;
+    }
+
+    .form-controll:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline: -webkit-focus-ring-color auto 5px;
+    }
+
+    .btn-outline-primary:hover {
+        background: rgba(255, 255, 255, 0.8);
+        color: #053777;
+    }
+
+    .btn-primary:hover {
+        background: transparent;
+        color: #fff;
+        border: 1px solid #fff;
+    }
+
+    .btn-outline-primary {
+        padding: 8px 30px;
+        background: transparent;
+        color: #fff;
+        text-transform: uppercase;
+        font-weight: 600;
+        font-size: 11px;
+        border: 1px solid #fff;
+        margin-right: 5px;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        padding: 8px 30px;
+        background: rgba(255, 255, 255, 0.8);
+        color: #053777;
+        text-transform: uppercase;
+        font-weight: 600;
+        font-size: 11px;
+        border: 0;
+        cursor: pointer;
+    }
+
+    .form-group {
+        max-width: 500px;
+        margin: auto;
+        margin-bottom: 30px;
+    }
+
+
+
+
+    .list-group {
+        text-align: left;
+        margin-top: 3rem;
+        display: none;
+    }
+
+    .list-group a {
+        text-decoration: none;
+        color: #fff;
+        padding: 0.2rem;
+    }
+
+
+    .img-fluid {
+        display: none;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px;
+        width: 25vw;
+        height: 25vh;
+        object-fit: contain;
+    }
+
+    .img-fluid:hover {
+        box-shadow: 0 0 2px 1px rgba(0, 140, 186, 0.5);
+    }
+
+    /* Snackbar toast */
+
+    #snackbar {
+        visibility: hidden;
+        min-width: 250px;
+        margin-left: -125px;
+        background-color: #101010bd;
+        color: #fff;
+        text-align: center;
+        border-radius: 2px;
+        padding: 7px;
+        position: fixed;
+        z-index: 9999;
+        left: 50%;
+        bottom: 30px;
+        font-size: 14px;
+    }
+
+    #snackbar p {
+        color: #fff !important;
+    }
+
+    #snackbar.show {
+        visibility: visible;
+        -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    @-webkit-keyframes fadein {
+        from {
+            bottom: 0;
+            opacity: 0;
+        }
+
+        to {
+            bottom: 30px;
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadein {
+        from {
+            bottom: 0;
+            opacity: 0;
+        }
+
+        to {
+            bottom: 30px;
+            opacity: 1;
+        }
+    }
+
+    @-webkit-keyframes fadeout {
+        from {
+            bottom: 30px;
+            opacity: 1;
+        }
+
+        to {
+            bottom: 0;
+            opacity: 0;
+        }
+    }
+
+    @keyframes fadeout {
+        from {
+            bottom: 30px;
+            opacity: 1;
+        }
+
+        to {
+            bottom: 0;
+            opacity: 0;
+        }
+    }
+
+    /* Snackbar toast */
+
+    button i {
+        margin-left: 5px;
+    }
+</style>
+
+
+
+<link href='https://fonts.googleapis.com/css?family=Lato:100,200,300,400,500,600,700' rel='stylesheet' type='text/css'>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+
+<body>
+
+
+    <form action="" id="img-form" enctype="multipart/form-data" method="post">
+
+        <h1><strong>DeepFake</strong> detection using ResNet50</h1>
+
+
+
+        <div class="form-group file-area">
+            <label for="images">Image <span>Click on predict button below to check whether it is
+                    real/fake</span></label>
+            <input type="file" name="photo" id="photo" required="required" />
+            <div class="file-dummy" id="file-dummy">
+                <div id="img-success" class="success">Great, your image is selected. Keep on.</div>
+                <div id="img-default" class="default">Please select an image</div>
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <img id="uploaded-image" class="img-fluid" alt="Image Preview">
+
+        </div>
+
+        <div class="form-group">
+            <div class="list-group list-custom-large" id="upload-file-data">
+                <a href="#" class="border-0">
+                    <i class="fa font-14 fa-info-circle"></i>
+                    <span>File Name</span>
+                    <strong class="file-info" id="upload-file-name"></strong>
+                </a> <br>
+                <a href="#" class="border-0">
+                    <i class="fa font-14 fa-folder"></i>
+                    <span>File Size</span>
+                    <strong class="file-info" id="upload-file-size"></strong>
+                </a> <br>
+                <a href="#" class="border-0">
+                    <i class="fa font-14 fa-tag"></i>
+                    <span>File Type</span>
+                    <strong class="file-info" id="upload-file-type"></strong>
+                </a> <br>
+                <a href="#" class="border-0 pb-4">
+                    <i class="fa font-14 fa-clock-o"></i>
+                    <span>Modified Date</span>
+                    <strong class="file-info" id="upload-file-modified"></strong>
+                </a> <br>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <button class="btn-outline-primary" id="clear_image" type="submit">Clear <i
+                    class="fa fa-times"></i></button>
+            <button class="btn-primary" id="submit_form" type="submit">Predict <i class="fa fa-search"></i></button>
+        </div>
+
+    </form>
+
+
+
+
+    <div id="snackbar">Message</div>
+
+    <script>
+
+        let fileDummy = document.getElementById('file-dummy');
+        let imgSuccess = document.getElementById('img-success');
+        let imgDefault = document.getElementById('img-default');
+
+        let successColor = '#00ff0066';
+        let defaultColor = '#356a9b';
+
+
+        let image_upload = document.getElementById('photo');
+        let image_clear = document.getElementById('clear_image');
+        let submit_form = document.getElementById('submit_form');
+
+
+        let img_form = document.getElementById('img-form');
+
+
+        let position;
+        submit_form.addEventListener('mouseover', (e) => {
+            e.preventDefault();
+            if (image_upload.files[0]) {
+                return true;
+            }
+
+            position ? (position = 0) : (position = 150)
+            submit_form.style.transform = `translate(0px,${position}px)`;
+            submit_form.style.transition = 'all 0.2s ease';
+        });
+
+        img_form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            console.log(image_upload.files[0]);
+        });
+
+
+        image_clear.addEventListener('click', (e) => {
+            image_upload.value = null;
+
+            imgSuccess.style.display = 'none';
+            imgDefault.style.display = 'inline-block';
+            fileDummy.style.backgroundColor = defaultColor;
+
+            document.getElementById('uploaded-image').src = "";
+            document.getElementById('upload-file-data').style.display = 'none';
+            document.getElementById('uploaded-image').style.display = 'none';
+
+        });
+
+
+
+        image_upload.addEventListener('change', (e) => {
+
+            document.getElementById('upload-file-data').style.display = 'none';
+
+            var allowedTypes = ['image/jpeg', 'image/png', 'image/jpg',];
+            const file = e.target.files[0];
+
+            if (file) {
+
+                const fileName = file.name;
+                const fileType = file.type;
+                const filesize = bytesToSize(file.size);
+                const filelastModified = file.lastModified;
+
+                if (!allowedTypes.includes(fileType)) {
+                    imgSuccess.style.display = 'none';
+                    imgDefault.style.display = 'inline-block';
+                    fileDummy.style.backgroundColor = defaultColor;
+
+                    BottomToast('This extension is not allowed');
+                    return false;
+                }
+
+                document.getElementById('upload-file-name').innerHTML = fileName;
+                document.getElementById('upload-file-size').innerHTML = filesize;
+                document.getElementById('upload-file-type').innerHTML = fileType;
+                document.getElementById('upload-file-modified').innerHTML = filelastModified;
+
+
+                document.getElementById('upload-file-data').style.display = 'block';
+
+
+                document.getElementById('uploaded-image').src = window.URL.createObjectURL(file);
+                BottomToast('File successfully selected');
+                imgSuccess.style.display = 'block';
+                imgDefault.style.display = 'none';
+                fileDummy.style.backgroundColor = successColor;
+
+                submit_form.style.transform = `translate(0px,0px)`;
+
+
+                document.getElementById('uploaded-image').style.display = 'block';
+            } else {
+                BottomToast('No file is selected');
+                return false;
+            }
+
+
+            return true;
+
+        });
+
+
+        function bytesToSize(bytes) {
+            var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            if (bytes == 0) return '0 Byte';
+            var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+            return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+        }
+
+
+
+
+        function BottomToast(message = 'Welcome !') {
+            document.getElementById('snackbar').classList.add("show");
+            document.getElementById('snackbar').innerText = message;
+
+            setTimeout(function () {
+                document.getElementById('snackbar').classList.remove("show");
+            }, 3000);
+        }
+
+
+
+    </script>
+
+
+</body>
+
+</html>
