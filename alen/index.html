@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Perfomance Analyser</title>
+</head>
+
+
+
+<style>
+    @import url("https://fonts.googleapis.com/css?family=Fjalla+One&display=swap");
+
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/38816/image-from-rawpixel-id-2210775-jpeg.jpg") center center no-repeat;
+        background-size: cover;
+        width: 100vw;
+        height: 100vh;
+        display: grid;
+        align-items: center;
+        justify-items: center;
+    }
+
+    .student-form {
+        background: #f8f4e5;
+        padding: 50px 100px;
+        border: 2px solid black;
+        box-shadow: 15px 15px 1px #ffa580, 15px 15px 1px 2px black;
+    }
+
+    input {
+        display: block;
+        width: 100%;
+        font-size: 14pt;
+        line-height: 28pt;
+        font-family: "Fjalla One";
+        margin-bottom: 28pt;
+        border: none;
+        border-bottom: 5px solid black;
+        background: #f8f4e5;
+        min-width: 250px;
+        padding-left: 5px;
+        outline: none;
+        color: black;
+    }
+
+    input:focus {
+        border-bottom: 5px solid #ffa580;
+    }
+
+    button {
+        display: block;
+        margin: 0 auto;
+        line-height: 28pt;
+        padding: 0 20px;
+        background: #ffa580;
+        letter-spacing: 2px;
+        transition: 0.2s all ease-in-out;
+        outline: none;
+        border: 1px solid black;
+        box-shadow: 3px 3px 1px 1px #95a4ff, 3px 3px 1px 2px black;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: black;
+        color: white;
+        border: 1px solid black;
+    }
+
+    ::selection {
+        background: #ffc8ff;
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+        border-bottom: 5px solid #95a4ff;
+        -webkit-text-fill-color: #2A293E;
+        -webkit-box-shadow: 0 0 0px 1000px #f8f4e5 inset;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+
+    .result-message{
+        text-align: center;
+        margin-bottom: 4%;
+        font-weight: bold;
+    }
+
+    .text-success{
+        color: #198754;
+    }
+    .text-danger{
+        color: #dc3545;
+    }
+</style>
+
+<body>
+
+
+    <div class="student-form">
+        <h4 class="result-message text-success">Student will pass</h4>
+        <form>
+            <input name="s1" placeholder="S1 Mark" required="" type="text" onkeypress="return GFG_Fun(this, event)" />
+            <input name="s2" placeholder="S2 Mark" required="" type="text" onkeypress="return GFG_Fun(this, event)" />
+            <input name="s3" placeholder="S3 Mark" required="" type="text" onkeypress="return GFG_Fun(this, event)" />
+
+            <input name="session1" placeholder="Session1 Mark" required="" type="text" onkeypress="return GFG_Fun(this, event)" />
+            <input name="session2" placeholder="Session2 Mark" required="" type="text" onkeypress="return GFG_Fun(this, event)" />
+
+            <input name="overall" placeholder="Overall Mark" required="" type="text" onkeypress="return GFG_Fun(this, event)" />
+
+            <button type="button">Analyze </button>
+        </form>
+    </div>
+
+
+    <script>
+       
+        function isValid(el, evnt) {
+            var charC = (evnt.which) ? evnt.which : evnt.keyCode;
+            if (charC == 46) {
+                if (el.value.indexOf('.') === -1) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                if (charC > 31 && (charC < 48 || charC > 57))
+                    return false;
+            }
+            return true;
+        }
+
+        function GFG_Fun(t, evnt) {
+            var status = isValid(t, evnt);
+            return status;
+        }
+    </script>
+
+</body>
+
+</html>
